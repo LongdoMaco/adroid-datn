@@ -26,48 +26,50 @@ public class MainActivity extends AppCompatActivity {
     // todo API_KEY should not be stored in plain sight
     private static final String API_KEY = "AIzaSyCIWb579dBtIL5BflFopri9L1OB1Md8Wsk";
     TextToSpeech t1;
-    TextView textView;
-    EditText editText;
-    Button button;
-    Spinner spinner;
+    TextView textTarget;
+    EditText editTextResource;
+    Button buttonTranslate;
+    Spinner spinnerResource,spinnerTarget;
+    String resouceLanguageCode,targetLanguageCode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView = (TextView) findViewById(R.id.text);
-        editText = (EditText) findViewById(R.id.editText);
-        textView.setText("Nothing to show");
-        button = (Button) findViewById(R.id.button);
-        spinner=(Spinner) findViewById(R.id.spinner);
+        textTarget = (TextView) findViewById(R.id.textTarget);
+        editTextResource = (EditText) findViewById(R.id.editResource);
+        buttonTranslate = (Button) findViewById(R.id.buttonTranslate);
+        spinnerResource=(Spinner) findViewById(R.id.spinnerResource);
+        spinnerTarget=(Spinner) findViewById(R.id.spinnerTarget);
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
-                    t1.setLanguage(Locale.FRANCE);
+                    t1.setLanguage(Locale.US);
                 }
             }
         });
 
-        MyClass[] obj2 ={
-                new MyClass("SUN", "0"),
-                new MyClass("MON", "1"),
-                new MyClass("TUE", "2"),
-                new MyClass("WED", "3"),
-                new MyClass("THU", "4"),
-                new MyClass("FRI", "5"),
-                new MyClass("SAT", "6")
+        MyClass[] objLanguage ={
+                new MyClass("English", "en"),
+                new MyClass("Japanese", "ja"),
+                new MyClass("French", "fr"),
+                new MyClass("German", "de"),
+                new MyClass("Korean", "ko"),
+                new MyClass("Vietnamese", "vi"),
+                new MyClass("Chinese", "zh-TW"),
+                new MyClass("Italian", "it")
         };
 
-        MySpinnerAdapter adapter2 =
+        MySpinnerAdapter adapterResource =
                 new MySpinnerAdapter(MainActivity.this,
-                        android.R.layout.simple_spinner_item, obj2);
-        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter2);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        android.R.layout.simple_spinner_item, objLanguage);
+        adapterResource.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerResource.setAdapter(adapterResource);
+        spinnerResource.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 MyClass obj = (MyClass)(adapterView.getItemAtPosition(i));
-                textView.setText(String.valueOf(obj.getValue()));
+                resouceLanguageCode=String.valueOf(obj.getValue());
             }
 
             @Override
@@ -75,10 +77,28 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        button.setOnClickListener(new View.OnClickListener() {
+        MySpinnerAdapter adapterTarget =
+                new MySpinnerAdapter(MainActivity.this,
+                        android.R.layout.simple_spinner_item, objLanguage);
+        adapterTarget.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTarget.setAdapter(adapterTarget);
+        spinnerTarget.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                MyClass obj = (MyClass)(adapterView.getItemAtPosition(i));
+                targetLanguageCode=String.valueOf(obj.getValue());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        buttonTranslate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String toSpeak = editText.getText().toString();
+                final String toSpeak = editTextResource.getText().toString();
 
                 final Handler textViewHandler = new Handler();
 
@@ -90,13 +110,13 @@ public class MainActivity extends AppCompatActivity {
                                 .build();
                         final Translate translate = options.getService();
                         final Translation translation =
-                                translate.translate(toSpeak,Translate.TranslateOption.sourceLanguage("fr"),
-                                        Translate.TranslateOption.targetLanguage("vi"));
+                                translate.translate(toSpeak,Translate.TranslateOption.sourceLanguage(resouceLanguageCode),
+                                        Translate.TranslateOption.targetLanguage(targetLanguageCode));
                         textViewHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                     t1.speak(translation.getTranslatedText(), TextToSpeech.QUEUE_FLUSH, null);
-                                    textView.setText(translation.getTranslatedText());
+                                    textTarget.setText(translation.getTranslatedText());
 
                             }
                         });
